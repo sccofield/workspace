@@ -1,33 +1,29 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/utils/supabase';
+import { useEffect } from 'react';
+import { createClient } from '@/utils/supabase/server';
+import { redirect } from 'next/navigation';
 
 export default function Callback() {
-  const [message, setMessage] = useState('Processing...');
-  const router = useRouter();
-
   useEffect(() => {
-    const processAuthCallback = async () => {
+    const handleCallback = async () => {
+      const supabase = await createClient();
       const { error } = await supabase.auth.exchangeCodeForSession(
         window.location.href
       );
 
       if (error) {
-        setMessage('Error processing confirmation: ' + error.message);
-        console.error('Error:', error);
+        console.error('Error processing callback:', error);
+        redirect('/error');
       } else {
-        setMessage('Email confirmed successfully! Redirecting...');
-        setTimeout(() => router.push('/dashboard'), 2000);
+        redirect('/dashboard');
       }
     };
 
-    processAuthCallback();
-  }, [router]);
+    handleCallback();
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <p className="text-lg font-medium">{message}</p>
+      <p className="text-lg font-medium">Processing...</p>
     </div>
   );
 }

@@ -1,49 +1,118 @@
+'use client';
+
+import { useState, lazy, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
+import { useUser } from '@/context/UserContext';
+
+const PaystackButton = lazy(() =>
+  import('react-paystack').then((mod) => ({ default: mod.PaystackButton }))
+);
+
+const PLANS = [
+  {
+    id: 'flex-monthly',
+    name: 'Flex Monthly',
+    price: 60000, // Naira
+    daysAllocated: 20,
+    validityDays: 40,
+  },
+  {
+    id: 'flex-weekly',
+    name: 'Flex Weekly',
+    price: 17500,
+    daysAllocated: 5,
+    validityDays: 10,
+  },
+  {
+    id: 'daily',
+    name: 'Daily Plan',
+    price: 4000,
+    daysAllocated: 1,
+    validityDays: 1,
+  },
+];
+
 export default function SubscriptionPage() {
-  const plans = [
-    {
-      name: 'Daily Plan',
-      price: '₦4,000',
-      features: 'Access for 1 day',
+  const { user } = useUser();
+  const router = useRouter();
+
+  if (!user) {
+    return <p>Loading...</p>;
+  }
+
+  const handlePaymentSuccess = async (reference, plan) => {
+    try {
+      const response = await fetch('/api/subscription/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user.uid,
+          plan_id: plan.id,
+          plan_name: plan.name,
+          amount: plan.price,
+          daysAllocated: plan.daysAllocated,
+          validityDays: plan.validityDays,
+          payment_reference: reference.reference,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create subscription');
+      }
+
+      alert('Subscription successful!');
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Error processing subscription:', error.message);
+      alert('Error processing subscription. Please try again.');
+    }
+  };
+
+  const getPaystackProps = (plan) => ({
+    email: user.email,
+    amount: plan.price * 100, // Convert to kobo
+    publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!,
+    metadata: {
+      custom_fields: [
+        {
+          display_name: 'User ID',
+          variable_name: 'user_id',
+          value: user.uid,
+        },
+        {
+          display_name: 'Plan Name',
+          variable_name: 'plan_name',
+          value: plan.name,
+        },
+      ],
     },
-    {
-      name: 'Flex Weekly',
-      price: '₦17,500',
-      features: '5 workspace days valid for 10 days',
-    },
-    {
-      name: 'Flex Monthly',
-      price: '₦60,000',
-      features: '20 workspace days valid for 40 days',
-    },
-  ];
+    text: 'Subscribe Now',
+    onSuccess: (reference) => handlePaymentSuccess(reference, plan),
+    onClose: () => alert('Payment process was canceled.'),
+  });
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="p-4 bg-white border border-gray-300 rounded">
-        <h2 className="text-xl font-bold text-gray-800">
-          Available Subscription Plans
-        </h2>
-        <p className="text-sm text-gray-600 mt-2">
-          Choose a plan that works best for you and start working with ease.
-        </p>
-      </div>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4 text-gray-800">
+        Subscription Plans
+      </h1>
 
-      {/* Subscription Plans */}
-      <div className="grid md:grid-cols-3 gap-6">
-        {plans.map((plan, index) => (
-          <div
-            key={index}
-            className="p-4 border border-gray-300 rounded bg-gray-50 hover:shadow-lg transition-shadow"
-          >
-            <h3 className="text-lg font-bold text-gray-800">{plan.name}</h3>
-            <p className="text-2xl font-bold text-orange-500 my-2">
-              {plan.price}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {PLANS.map((plan) => (
+          <div key={plan.id} className="p-4 border rounded shadow">
+            <h2 className="text-lg font-bold text-gray-800">{plan.name}</h2>
+            <p className="text-gray-600">
+              {plan.daysAllocated} days within {plan.validityDays} days
             </p>
-            <p className="text-sm text-gray-600">{plan.features}</p>
-            <button className="mt-4 bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
-              Subscribe Now
-            </button>
+            <p className="text-xl font-bold mb-4 text-gray-800">
+              ₦{plan.price.toLocaleString()}
+            </p>
+            <Suspense fallback={<p>Loading Paystack Button...</p>}>
+              <PaystackButton
+                {...getPaystackProps(plan)}
+                className="bg-orange-500 text-white w-full py-2 rounded hover:bg-orange-600"
+              />
+            </Suspense>
           </div>
         ))}
       </div>

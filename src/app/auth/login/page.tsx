@@ -1,40 +1,40 @@
-'use client';
+'use client'; // Ensures the use of client-side hooks
+
 import { useState } from 'react';
+import { loginAction } from './actions';
+import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
+
 import Image from 'next/image';
 
-import { supabase } from '@/utils/supabase';
-
-export default function Login() {
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+export default function LoginPage() {
   const router = useRouter();
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [loading, setLoading] = useState(false); // For spinner
+  const [error, setError] = useState('');
+  const { setUser } = useUser();
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     setLoading(true);
-    setMessage('');
+    setError('');
 
-    const { email, password } = formData;
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      setMessage('Login failed: ' + error.message);
-    } else {
-      router.push('/dashboard'); // Redirect to dashboard
+    try {
+      const user = await loginAction(formData.email, formData.password);
+      setUser(user); // Set the user data in the context
+      router.push('/dashboard'); // Redirect on the client
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg">
+        {/* Logo and Title */}
         <div className="text-center mb-4">
           <Image
             src="/logo.png"
@@ -45,19 +45,20 @@ export default function Login() {
           />
           <h1 className="text-2xl font-bold mt-2 text-gray-900">Login</h1>
         </div>
-        {message && <p className="mt-4 text-center text-red-500">{message}</p>}
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        {/* Error Message */}
+        {error && (
+          <p className="text-red-500 text-center mb-4 font-medium">{error}</p>
+        )}
+
+        {/* Login Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email Field */}
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label className="block text-sm font-medium text-gray-700">
               Email Address
             </label>
             <input
-              id="email"
               type="email"
               placeholder="Enter your email"
               value={formData.email}
@@ -70,14 +71,10 @@ export default function Login() {
 
           {/* Password Field */}
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label className="block text-sm font-medium text-gray-700">
               Password
             </label>
             <input
-              id="password"
               type="password"
               placeholder="Enter your password"
               value={formData.password}
@@ -88,7 +85,7 @@ export default function Login() {
             />
           </div>
 
-          {/* Submit Button */}
+          {/* Submit Button with Spinner */}
           <button
             type="submit"
             disabled={loading}
@@ -108,6 +105,8 @@ export default function Login() {
             )}
           </button>
         </form>
+
+        {/* Register Link */}
         <p className="mt-6 text-center text-sm text-gray-600">
           Do not have an account?{' '}
           <a

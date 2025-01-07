@@ -1,5 +1,7 @@
 'use client';
 import { useState, ReactNode } from 'react';
+import { useUser } from '@/context/UserContext';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation'; // Correctly use this hook to get the current path
 import Image from 'next/image';
@@ -9,6 +11,8 @@ interface LayoutProps {
 }
 
 export default function DashboardLayout({ children }: LayoutProps) {
+  const { logout } = useUser();
+
   const [isMenuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname(); // Get the current route path
 
@@ -16,7 +20,6 @@ export default function DashboardLayout({ children }: LayoutProps) {
     { name: 'Overview', href: '/dashboard' },
     { name: 'Subscription', href: '/dashboard/subscription' },
     { name: 'Profile', href: '/dashboard/profile' },
-    { name: 'Log Out', href: '/dashboard/logout' },
   ];
 
   return (
@@ -63,6 +66,12 @@ export default function DashboardLayout({ children }: LayoutProps) {
             </Link>
           ))}
         </nav>
+        <button
+          onClick={logout}
+          className={`block w-full text-center py-2 rounded bg-red-500 text-white hover:bg-red-600`}
+        >
+          Log Out
+        </button>
       </div>
 
       {/* Main Content */}

@@ -1,12 +1,16 @@
 'use client';
+import { useUser } from '@/context/UserContext';
+
 import { useState } from 'react';
 
 export default function ProfilePage() {
+  const { user } = useUser();
   const [formData, setFormData] = useState({
-    name: 'Emmy',
-    email: 'emmy@example.com',
-    phone: '08012345678',
+    name: user?.name,
+    email: user?.email,
+    phone: user?.phone,
   });
+  console.log(formData);
 
   const [isEditing, setIsEditing] = useState(false);
   const [message, setMessage] = useState('');
