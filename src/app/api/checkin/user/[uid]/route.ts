@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/utils/supabase';
 
-export async function GET(req: Request, context: { params: { uid: string } }) {
-  const { params } = context;
-
-  const { uid } = await params;
+export async function GET(
+  request: Request,
+  { params }: { params: { uid: string } }
+) {
+  const { uid } = params;
 
   try {
     const { data, error } = await supabase
