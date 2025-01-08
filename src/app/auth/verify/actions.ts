@@ -1,7 +1,6 @@
 'use server';
 
 import { createClient } from '@/utils/supabase/server';
-import { redirect } from 'next/navigation';
 
 export async function verifyAction(email: string, code: string) {
   const supabase = await createClient();
@@ -16,6 +15,13 @@ export async function verifyAction(email: string, code: string) {
     throw new Error('Invalid or expired verification code.');
   }
 
-  // Redirect to dashboard upon success
-  redirect('/dashboard');
+  const { data: user, error: userError } = await supabase.auth.getUser();
+  if (userError) throw new Error(userError.message);
+
+  return {
+    uid: user.user.id,
+    email: user.user.email || '',
+    name: user.user?.user_metadata?.name || '',
+    phone: user.user?.user_metadata?.phone || '',
+  };
 }

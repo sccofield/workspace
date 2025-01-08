@@ -48,8 +48,12 @@ export default function RegisterPage() {
 
     try {
       await registerAction(formData.email, formData.password, formData.name);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred.');
+      }
     } finally {
       setLoading(false); // Stop spinner
     }

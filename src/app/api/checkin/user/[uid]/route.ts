@@ -4,11 +4,7 @@ import { supabase } from '@/utils/supabase';
 export async function GET(req: Request, context: { params: { uid: string } }) {
   const { params } = context;
 
-  if (!params?.uid) {
-    return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
-  }
-
-  const { uid } = params;
+  const { uid } = await params;
 
   try {
     const { data, error } = await supabase
@@ -23,6 +19,10 @@ export async function GET(req: Request, context: { params: { uid: string } }) {
 
     return NextResponse.json(data);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Error handling request:', error);
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }

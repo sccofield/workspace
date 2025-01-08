@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import { useRouter } from 'next/navigation';
 
 interface User {
   uid: string;
@@ -20,6 +21,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -27,7 +29,12 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       const { data, error } = await supabase.auth.getUser();
 
       if (error) {
-        console.error('Error fetching user:', error);
+        if (error.message === 'Auth session missing!') {
+          console.warn('No active session found, user is not logged in.');
+
+          return;
+        }
+        console.error('Error fetching user:', error.message);
         return;
       }
 
@@ -48,6 +55,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const supabase = createClient();
     await supabase.auth.signOut();
     setUser(null);
+    router.push('/auth/login');
   };
 
   return (

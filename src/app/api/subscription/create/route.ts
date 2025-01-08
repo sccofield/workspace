@@ -42,6 +42,7 @@ export async function POST(req: Request) {
       days_allocated: daysAllocated,
       expiry_date: expiryDate,
       payment_reference,
+      days_remaining: daysAllocated,
     });
 
     if (error) {
@@ -49,10 +50,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    console.log('Subscription inserted successfully');
     return NextResponse.json({ message: 'Subscription created successfully' });
   } catch (error) {
     console.error('Error handling request:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }

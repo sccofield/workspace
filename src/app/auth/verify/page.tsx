@@ -3,9 +3,14 @@
 import { useState } from 'react';
 import { verifyAction } from './actions';
 import { useSearchParams } from 'next/navigation';
+import { useUser } from '@/context/UserContext';
+import { useRouter } from 'next/navigation';
+
 import Image from 'next/image';
 
 export default function VerifyPage() {
+  const router = useRouter();
+  const { setUser } = useUser();
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false); // Spinner state
   const [error, setError] = useState('');
@@ -24,9 +29,15 @@ export default function VerifyPage() {
     setError('');
 
     try {
-      await verifyAction(email, code);
-    } catch (err: any) {
-      setError(err.message);
+      const user = await verifyAction(email, code);
+      setUser(user);
+      router.push('/dashboard');
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred.');
+      }
     } finally {
       setLoading(false); // Stop spinner
     }

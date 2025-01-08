@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, lazy, Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/context/UserContext';
 
@@ -8,13 +8,25 @@ const PaystackButton = lazy(() =>
   import('react-paystack').then((mod) => ({ default: mod.PaystackButton }))
 );
 
+interface Reference {
+  reference: string;
+}
+
+interface Plan {
+  id: string;
+  name: string;
+  price: number;
+  daysAllocated: number;
+  validityDays: number;
+}
+
 const PLANS = [
   {
-    id: 'flex-monthly',
-    name: 'Flex Monthly',
-    price: 60000, // Naira
-    daysAllocated: 20,
-    validityDays: 40,
+    id: 'daily',
+    name: 'Daily Plan',
+    price: 4000,
+    daysAllocated: 1,
+    validityDays: 1,
   },
   {
     id: 'flex-weekly',
@@ -23,12 +35,13 @@ const PLANS = [
     daysAllocated: 5,
     validityDays: 10,
   },
+
   {
-    id: 'daily',
-    name: 'Daily Plan',
-    price: 4000,
-    daysAllocated: 1,
-    validityDays: 1,
+    id: 'flex-monthly',
+    name: 'Flex Monthly',
+    price: 60000, // Naira
+    daysAllocated: 20,
+    validityDays: 40,
   },
 ];
 
@@ -40,7 +53,7 @@ export default function SubscriptionPage() {
     return <p>Loading...</p>;
   }
 
-  const handlePaymentSuccess = async (reference, plan) => {
+  const handlePaymentSuccess = async (reference: Reference, plan: Plan) => {
     try {
       const response = await fetch('/api/subscription/create', {
         method: 'POST',
@@ -62,13 +75,12 @@ export default function SubscriptionPage() {
 
       alert('Subscription successful!');
       router.push('/dashboard');
-    } catch (error) {
-      console.error('Error processing subscription:', error.message);
+    } catch {
       alert('Error processing subscription. Please try again.');
     }
   };
 
-  const getPaystackProps = (plan) => ({
+  const getPaystackProps = (plan: Plan) => ({
     email: user.email,
     amount: plan.price * 100, // Convert to kobo
     publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!,
@@ -87,7 +99,7 @@ export default function SubscriptionPage() {
       ],
     },
     text: 'Subscribe Now',
-    onSuccess: (reference) => handlePaymentSuccess(reference, plan),
+    onSuccess: (reference: Reference) => handlePaymentSuccess(reference, plan),
     onClose: () => alert('Payment process was canceled.'),
   });
 

@@ -24,8 +24,12 @@ export default function LoginPage() {
       const user = await loginAction(formData.email, formData.password);
       setUser(user); // Set the user data in the context
       router.push('/dashboard'); // Redirect on the client
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred.');
+      }
     } finally {
       setLoading(false);
     }

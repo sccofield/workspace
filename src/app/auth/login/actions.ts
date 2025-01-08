@@ -1,12 +1,11 @@
 'use server';
 
 import { createClient } from '@/utils/supabase/server';
-import { redirect } from 'next/navigation';
 
 export async function loginAction(email: string, password: string) {
   const supabase = await createClient();
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
@@ -19,9 +18,9 @@ export async function loginAction(email: string, password: string) {
   if (userError) throw new Error(userError.message);
 
   return {
-    uid: user?.id,
-    email: user?.email!,
-    name: user?.user_metadata?.name || '',
-    phone: user?.user_metadata?.phone || '',
+    uid: user.user.id,
+    email: user.user.email!,
+    name: user.user?.user_metadata?.name || '',
+    phone: user.user?.user_metadata?.phone || '',
   };
 }
