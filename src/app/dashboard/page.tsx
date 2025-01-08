@@ -38,8 +38,6 @@ export default function OverviewPage() {
   const [checkinError, setCheckinError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  console.log(subscriptions);
-
   // Fetch subscriptions and recent check-ins
   useEffect(() => {
     const fetchData = async () => {
@@ -47,13 +45,9 @@ export default function OverviewPage() {
         console.warn('User is not available; skipping data fetch.');
         return;
       }
-      console.log(user);
 
       try {
-        console.log('Fetching data for user:', user.uid);
-
         // Fetch subscriptions
-        console.log('Fetching subscriptions...');
         const subResponse = await fetch(`/api/subscription/user/${user.uid}`);
         if (!subResponse.ok) {
           const subErrorData = await subResponse.json();
@@ -67,11 +61,9 @@ export default function OverviewPage() {
           );
         }
         const subData = await subResponse.json();
-        console.log('Subscriptions fetched successfully:', subData);
         setSubscriptions(subData);
 
         // Fetch recent check-ins
-        console.log('Fetching recent check-ins...');
         const checkinResponse = await fetch(`/api/checkin/user/${user.uid}`);
         if (!checkinResponse.ok) {
           const checkinErrorData = await checkinResponse.json();
@@ -85,7 +77,6 @@ export default function OverviewPage() {
           );
         }
         const checkinData = await checkinResponse.json();
-        console.log('Recent check-ins fetched successfully:', checkinData);
         setRecentCheckins(checkinData);
       } catch (err) {
         if (err instanceof Error) {
@@ -96,7 +87,6 @@ export default function OverviewPage() {
           setError('An unexpected error occurred.');
         }
       } finally {
-        console.log('Data fetch process completed.');
         setLoadingSubscriptions(false);
       }
     };
