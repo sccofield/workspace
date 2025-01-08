@@ -10,7 +10,6 @@ export default function ProfilePage() {
     email: user?.email,
     phone: user?.phone,
   });
-  console.log(formData);
 
   const [isEditing, setIsEditing] = useState(false);
   const [message, setMessage] = useState('');
@@ -27,7 +26,6 @@ export default function ProfilePage() {
 
     try {
       // Simulated API call for profile update
-      console.log('Saving profile...', formData);
       setMessage('Profile updated successfully!');
       setIsEditing(false); // Exit edit mode
     } catch {

@@ -4,16 +4,9 @@ import { supabase } from '@/utils/supabase';
 export async function POST(req: Request) {
   // Log request details for debugging
   try {
-    console.log('Request Details:', {
-      method: req.method, // HTTP method
-      url: req.url, // Full URL of the request
-      headers: Object.fromEntries(req.headers), // Headers as key-value pairs
-    });
-
     // Parse and log the request body
     const {
       user_id,
-      plan_id,
       plan_name,
       amount,
       daysAllocated,
@@ -21,15 +14,24 @@ export async function POST(req: Request) {
       payment_reference,
     } = await req.json();
 
-    console.log('Request Body:', {
-      user_id,
-      plan_id,
-      plan_name,
-      amount,
-      daysAllocated,
-      validityDays,
-      payment_reference,
-    });
+    const response = await fetch(
+      `https://api.paystack.co/transaction/verify/${payment_reference}`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Payment verification failed.');
+    }
+
+    const data = await response.json();
+    if (data.status !== true || data.data.status !== 'success') {
+      throw new Error('Invalid payment reference.');
+    }
 
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + validityDays);
@@ -46,13 +48,11 @@ export async function POST(req: Request) {
     });
 
     if (error) {
-      console.error('Supabase Insert Error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ message: 'Subscription created successfully' });
-  } catch (error) {
-    console.error('Error handling request:', error);
+  } catch {
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }
