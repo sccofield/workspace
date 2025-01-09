@@ -1,20 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { verifyAction } from './actions';
 import { useSearchParams } from 'next/navigation';
 import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
-
 import Image from 'next/image';
 
-export default function VerifyPage() {
+// Component to handle the verification form
+function VerifyComponent() {
   const router = useRouter();
   const { setUser } = useUser();
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false); // Spinner state
   const [error, setError] = useState('');
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams(); // Use inside a Suspense boundary
   const email = searchParams.get('email');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -101,5 +101,14 @@ export default function VerifyPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+// Main component with Suspense boundary
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <VerifyComponent />
+    </Suspense>
   );
 }
