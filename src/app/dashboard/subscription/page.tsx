@@ -72,11 +72,12 @@ export default function SubscriptionPage() {
       return;
     }
 
-    // Initialize a new transaction
+    // Initialize a new PaystackPop instance
     const popup = new window.PaystackPop();
+
     popup.newTransaction({
-      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
-      email: user.email,
+      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY, // Paystack public key
+      email: user.email, // Customer's email
       amount: plan.price * 100, // Convert to kobo
       currency: 'NGN',
       metadata: {
@@ -85,8 +86,7 @@ export default function SubscriptionPage() {
         daysAllocated: plan.daysAllocated,
         validityDays: plan.validityDays,
       },
-
-      onSuccess: async (transaction) => {
+      onSuccess: async (transaction: { reference: string }) => {
         setLoading(true);
         try {
           // Save subscription details to backend
@@ -122,10 +122,13 @@ export default function SubscriptionPage() {
       onCancel: () => {
         alert('Transaction canceled.');
       },
-      onError: (error) => {
+      onError: (error: Error) => {
         alert(`Payment error: ${error.message}`);
       },
     });
+
+    // Open the Paystack payment popup
+    popup.open();
   };
 
   if (!user) {
